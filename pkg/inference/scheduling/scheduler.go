@@ -17,6 +17,7 @@ import (
 	"github.com/docker/model-runner/pkg/inference/models"
 	"github.com/docker/model-runner/pkg/logging"
 	"github.com/docker/model-runner/pkg/metrics"
+	"github.com/docker/model-runner/pkg/runnermap"
 	"github.com/mattn/go-shellwords"
 	"golang.org/x/sync/errgroup"
 )
@@ -56,7 +57,10 @@ func NewScheduler(
 	allowedOrigins []string,
 	tracker *metrics.Tracker,
 ) *Scheduler {
-	openAIRecorder := metrics.NewOpenAIRecorder(log.WithField("component", "openai-recorder"))
+	openAIRecorder := metrics.NewOpenAIRecorder(
+		log.WithField("component", "openai-recorder"),
+		modelManager.ResolveModelID,
+	)
 
 	// Create the scheduler.
 	s := &Scheduler{
@@ -247,11 +251,12 @@ func (s *Scheduler) handleOpenAIInference(w http.ResponseWriter, r *http.Request
 	defer s.loader.release(runner)
 
 	// Record the request in the OpenAI recorder.
-	recordID := s.openAIRecorder.RecordRequest(request.Model, r, body)
+	runnerKey := runnermap.Key{backend.Name(), request.Model, backendMode}
+	recordID := s.openAIRecorder.RecordRequest(runnerKey, r, body)
 	w = s.openAIRecorder.NewResponseRecorder(w)
 	defer func() {
 		// Record the response in the OpenAI recorder.
-		s.openAIRecorder.RecordResponse(recordID, request.Model, w)
+		s.openAIRecorder.RecordResponse(recordID, runnerKey, w)
 	}()
 
 	// Create a request with the body replaced for forwarding upstream.
@@ -293,14 +298,14 @@ func (s *Scheduler) getLoaderStatus(ctx context.Context) []BackendStatus {
 	}
 	defer s.loader.unlock()
 
-	result := make([]BackendStatus, 0, len(s.loader.runners))
+	result := make([]BackendStatus, 0, len(s.loader.runners.Items()))
 
-	for key, slot := range s.loader.runners {
+	for key, slot := range s.loader.runners.Items() {
 		if s.loader.slots[slot] != nil {
 			status := BackendStatus{
-				BackendName: key.backend,
-				ModelName:   key.model,
-				Mode:        key.mode.String(),
+				BackendName: key.Backend,
+				ModelName:   s.loader.runners.GetInitialModel(key),
+				Mode:        key.Mode.String(),
 				LastUsed:    time.Time{},
 			}
 
@@ -435,13 +440,13 @@ func (s *Scheduler) GetAllActiveRunners() []metrics.ActiveRunner {
 
 	for _, backend := range runningBackends {
 		// Find the runner slot for this backend/model combination
-		key := runnerKey{
-			backend: backend.BackendName,
-			model:   backend.ModelName,
-			mode:    parseBackendMode(backend.Mode),
+		key := runnermap.Key{
+			Backend: backend.BackendName,
+			Model:   backend.ModelName,
+			Mode:    parseBackendMode(backend.Mode),
 		}
 
-		if slot, exists := s.loader.runners[key]; exists {
+		if slot, exists := s.loader.runners.Get(key); exists {
 			socket, err := RunnerSocketPath(slot)
 			if err != nil {
 				s.log.Warnf("Failed to get socket path for runner %s/%s: %v", backend.BackendName, backend.ModelName, err)
@@ -473,13 +478,13 @@ func (s *Scheduler) GetLlamaCppSocket() (string, error) {
 	for _, backend := range runningBackends {
 		if backend.BackendName == "llama.cpp" {
 			// Find the runner slot for this backend/model combination
-			key := runnerKey{
-				backend: backend.BackendName,
-				model:   backend.ModelName,
-				mode:    parseBackendMode(backend.Mode),
+			key := runnermap.Key{
+				Backend: backend.BackendName,
+				Model:   backend.ModelName,
+				Mode:    parseBackendMode(backend.Mode),
 			}
 
-			if slot, exists := s.loader.runners[key]; exists {
+			if slot, exists := s.loader.runners.Get(key); exists {
 				// Use the RunnerSocketPath function to get the socket path
 				return RunnerSocketPath(slot)
 			}

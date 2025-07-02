@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"github.com/docker/model-runner/pkg/inference"
+	"github.com/docker/model-runner/pkg/inference/backends/llamacpp"
 	"github.com/docker/model-runner/pkg/logging"
+	"github.com/docker/model-runner/pkg/runnermap"
 )
 
 type responseRecorder struct {
@@ -54,45 +56,46 @@ type ModelData struct {
 
 type OpenAIRecorder struct {
 	log     logging.Logger
-	records map[string]*ModelData
+	records *runnermap.Map[*ModelData]
 	m       sync.RWMutex
 }
 
-func NewOpenAIRecorder(log logging.Logger) *OpenAIRecorder {
+func NewOpenAIRecorder(log logging.Logger, runnerMapNormalizeFn func(string) string) *OpenAIRecorder {
 	return &OpenAIRecorder{
 		log:     log,
-		records: make(map[string]*ModelData),
+		records: runnermap.New[*ModelData](runnerMapNormalizeFn),
 	}
 }
 
-func (r *OpenAIRecorder) SetConfigForModel(model string, config *inference.BackendConfiguration) {
+func (r *OpenAIRecorder) SetConfigForModel(runner runnermap.Key, config *inference.BackendConfiguration) {
 	if config == nil {
-		r.log.Warnf("SetConfigForModel called with nil config for model %s", model)
+		r.log.Warnf("SetConfigForModel called with nil config for model %s", runner.Model)
 		return
 	}
 
 	r.m.Lock()
 	defer r.m.Unlock()
 
-	if r.records[model] == nil {
-		r.records[model] = &ModelData{
+	if _, ok := r.records.Get(runner); !ok {
+		r.records.Set(runner, &ModelData{
 			Records: make([]*RequestResponsePair, 0, 10),
 			Config:  inference.BackendConfiguration{},
-		}
+		})
 	}
 
-	r.records[model].Config = *config
+	rr, _ := r.records.Get(runner)
+	rr.Config = *config
 }
 
-func (r *OpenAIRecorder) RecordRequest(model string, req *http.Request, body []byte) string {
+func (r *OpenAIRecorder) RecordRequest(runner runnermap.Key, req *http.Request, body []byte) string {
 	r.m.Lock()
 	defer r.m.Unlock()
 
-	recordID := fmt.Sprintf("%s_%d", model, time.Now().UnixNano())
+	recordID := fmt.Sprintf("%s_%d", runner.Model, time.Now().UnixNano())
 
 	record := &RequestResponsePair{
 		ID:        recordID,
-		Model:     model,
+		Model:     runner.Model,
 		Method:    req.Method,
 		URL:       req.URL.Path,
 		Request:   string(body),
@@ -100,17 +103,18 @@ func (r *OpenAIRecorder) RecordRequest(model string, req *http.Request, body []b
 		UserAgent: req.UserAgent(),
 	}
 
-	if r.records[model] == nil {
-		r.records[model] = &ModelData{
+	if _, ok := r.records.Get(runner); !ok {
+		r.records.Set(runner, &ModelData{
 			Records: make([]*RequestResponsePair, 0, 10),
 			Config:  inference.BackendConfiguration{},
-		}
+		})
 	}
 
-	r.records[model].Records = append(r.records[model].Records, record)
+	rr, _ := r.records.Get(runner)
+	rr.Records = append(rr.Records, record)
 
-	if len(r.records[model].Records) > 10 {
-		r.records[model].Records = r.records[model].Records[1:]
+	if len(rr.Records) > 10 {
+		rr.Records = rr.Records[1:]
 	}
 
 	return recordID
@@ -125,7 +129,7 @@ func (r *OpenAIRecorder) NewResponseRecorder(w http.ResponseWriter) http.Respons
 	return rc
 }
 
-func (r *OpenAIRecorder) RecordResponse(id, model string, rw http.ResponseWriter) {
+func (r *OpenAIRecorder) RecordResponse(id string, runner runnermap.Key, rw http.ResponseWriter) {
 	rr := rw.(*responseRecorder)
 
 	responseBody := rr.body.String()
@@ -141,7 +145,7 @@ func (r *OpenAIRecorder) RecordResponse(id, model string, rw http.ResponseWriter
 	r.m.Lock()
 	defer r.m.Unlock()
 
-	if modelData, exists := r.records[model]; exists {
+	if modelData, exists := r.records.Get(runner); exists {
 		for _, record := range modelData.Records {
 			if record.ID == id {
 				record.Response = response
@@ -149,9 +153,9 @@ func (r *OpenAIRecorder) RecordResponse(id, model string, rw http.ResponseWriter
 				return
 			}
 		}
-		r.log.Errorf("Matching request (id=%s) not found for model %s - %d\n%s", id, model, statusCode, response)
+		r.log.Errorf("Matching request (id=%s) not found for model %s - %d\n%s", id, runner.Model, statusCode, response)
 	} else {
-		r.log.Errorf("Model %s not found in records - %d\n%s", model, statusCode, response)
+		r.log.Errorf("Model %s not found in records - %d\n%s", runner.Model, statusCode, response)
 	}
 }
 
@@ -230,8 +234,8 @@ func (r *OpenAIRecorder) GetRecordsByModelHandler() http.HandlerFunc {
 			http.Error(w, "A 'model' query parameter is required", http.StatusBadRequest)
 		} else {
 			// Retrieve records for the specified model.
-			records := r.GetRecordsByModel(model)
-			if records == nil {
+			modelData := r.GetModelData(model)
+			if modelData == nil {
 				// No records found for the specified model.
 				http.Error(w, fmt.Sprintf("No records found for model '%s'", model), http.StatusNotFound)
 				return
@@ -239,9 +243,9 @@ func (r *OpenAIRecorder) GetRecordsByModelHandler() http.HandlerFunc {
 
 			if err := json.NewEncoder(w).Encode(map[string]interface{}{
 				"model":   model,
-				"records": records,
-				"count":   len(records),
-				"config":  r.records[model].Config,
+				"records": modelData.Records,
+				"count":   len(modelData.Records),
+				"config":  modelData.Config,
 			}); err != nil {
 				http.Error(w, fmt.Sprintf("Failed to encode records for model '%s': %v", model, err),
 					http.StatusInternalServerError)
@@ -251,14 +255,14 @@ func (r *OpenAIRecorder) GetRecordsByModelHandler() http.HandlerFunc {
 	}
 }
 
-func (r *OpenAIRecorder) GetRecordsByModel(model string) []*RequestResponsePair {
+func (r *OpenAIRecorder) GetModelData(model string) *ModelData {
 	r.m.RLock()
 	defer r.m.RUnlock()
 
-	if modelData, exists := r.records[model]; exists {
-		result := make([]*RequestResponsePair, len(modelData.Records))
-		copy(result, modelData.Records)
-		return result
+	if modelData, exists := r.records.Get(runnermap.Key{llamacpp.Name, model, inference.BackendModeCompletion}); exists {
+		records := make([]*RequestResponsePair, len(modelData.Records))
+		copy(records, modelData.Records)
+		return &ModelData{Config: modelData.Config, Records: records}
 	}
 
 	return nil
@@ -268,8 +272,9 @@ func (r *OpenAIRecorder) RemoveModel(model string) {
 	r.m.Lock()
 	defer r.m.Unlock()
 
-	if _, exists := r.records[model]; exists {
-		delete(r.records, model)
+	runnerKey := runnermap.Key{llamacpp.Name, model, inference.BackendModeCompletion}
+	if _, exists := r.records.Get(runnerKey); exists {
+		r.records.Delete(runnerKey)
 		r.log.Infof("Removed records for model: %s", model)
 	} else {
 		r.log.Warnf("No records found for model: %s", model)

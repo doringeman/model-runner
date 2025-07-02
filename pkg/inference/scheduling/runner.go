@@ -16,6 +16,7 @@ import (
 	"github.com/docker/model-runner/pkg/inference"
 	"github.com/docker/model-runner/pkg/logging"
 	"github.com/docker/model-runner/pkg/metrics"
+	"github.com/docker/model-runner/pkg/runnermap"
 )
 
 const (
@@ -169,7 +170,11 @@ func run(
 		}
 	}
 
-	r.openAIRecorder.SetConfigForModel(model, runnerConfig)
+	r.openAIRecorder.SetConfigForModel(runnermap.Key{
+		Backend: backend.Name(),
+		Model:   model,
+		Mode:    mode,
+	}, runnerConfig)
 
 	// Start the backend run loop.
 	go func() {

@@ -525,6 +525,21 @@ func (m *Manager) GetModel(ref string) (types.Model, error) {
 	return model, err
 }
 
+// ResolveModelID resolves a model reference to a model ID. If resolution fails, it returns the original reference.
+func (m *Manager) ResolveModelID(modelRef string) string {
+	model, err := m.GetModel(modelRef)
+	if err != nil {
+		m.log.Warnf("resolving model %s to ID: %v", modelRef, err)
+		return modelRef
+	}
+	modelID, err := model.ID()
+	if err != nil {
+		m.log.Warnf("getting model ID for %s: %v", modelRef, err)
+		return modelRef
+	}
+	return modelID
+}
+
 // GetModelPath returns the path to a model's files.
 func (m *Manager) GetModelPath(ref string) (string, error) {
 	model, err := m.GetModel(ref)
