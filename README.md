@@ -10,7 +10,7 @@ The backend library for the
 > considered stable.
 
 This package supports the Docker Model Runner in Docker Desktop (in conjunction
-with [Model Distribution](https://github.com/docker/model-distribution) and the
+with [Model Distribution](./pkg/distribution) and the
 [Model CLI](https://github.com/docker/model-cli)). It includes a `main.go` that
 mimics its integration with Docker Desktop and allows the package to be run in a
 standalone mode.
