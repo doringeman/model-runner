@@ -24,3 +24,6 @@ jobs:
 
       - name: Run tests with race detection
         run: go test -race ./...
+
+      - name: model-distribution # TODO: Create a single Makefile for the monorepo
+        run: make -C ./pkg/distribution/ all
