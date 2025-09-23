@@ -7,7 +7,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/docker/model-distribution/internal/gguf"
+	"github.com/docker/model-runner/pkg/distribution/internal/gguf"
 )
 
 func TestDeleteModel(t *testing.T) {

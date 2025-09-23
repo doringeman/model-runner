@@ -3,7 +3,7 @@ package bundle
 import (
 	"path/filepath"
 
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/types"
 )
 
 // Bundle represents a runtime bundle containing a model and runtime config

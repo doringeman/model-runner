@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	testutil "github.com/docker/model-distribution/transport/internal/testing"
+	testutil "github.com/docker/model-runner/pkg/distribution/transport/internal/testing"
 )
 
 // blockingBody simulates a response body that blocks on Read until closed.

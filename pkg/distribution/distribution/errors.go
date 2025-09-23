@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/docker/model-distribution/internal/store"
-	"github.com/docker/model-distribution/registry"
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/internal/store"
+	"github.com/docker/model-runner/pkg/distribution/registry"
+	"github.com/docker/model-runner/pkg/distribution/types"
 )
 
 var (

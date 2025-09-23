@@ -16,7 +16,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/types"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	parser "github.com/gpustack/gguf-parser-go"
 

@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/types"
 )
 
 // Parse returns the Bundle at the given rootDir

@@ -9,11 +9,11 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/docker/model-distribution/internal/progress"
-	"github.com/docker/model-distribution/internal/store"
-	"github.com/docker/model-distribution/registry"
-	"github.com/docker/model-distribution/tarball"
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/internal/progress"
+	"github.com/docker/model-runner/pkg/distribution/internal/store"
+	"github.com/docker/model-runner/pkg/distribution/registry"
+	"github.com/docker/model-runner/pkg/distribution/tarball"
+	"github.com/docker/model-runner/pkg/distribution/types"
 )
 
 // Client provides model distribution functionality

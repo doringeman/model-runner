@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/types"
 )
 
 // FileTarget writes an artifact tarball to a local file.

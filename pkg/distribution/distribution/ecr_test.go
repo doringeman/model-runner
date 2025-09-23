@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/docker/model-distribution/internal/gguf"
+	"github.com/docker/model-runner/pkg/distribution/internal/gguf"
 )
 
 func TestECRIntegration(t *testing.T) {

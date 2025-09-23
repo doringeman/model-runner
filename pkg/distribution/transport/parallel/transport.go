@@ -39,8 +39,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/docker/model-distribution/transport/internal/bufferfile"
-	"github.com/docker/model-distribution/transport/internal/common"
+	"github.com/docker/model-runner/pkg/distribution/transport/internal/bufferfile"
+	"github.com/docker/model-runner/pkg/distribution/transport/internal/common"
 )
 
 // Option configures a ParallelTransport.

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/docker/model-distribution/internal/gguf"
-	"github.com/docker/model-distribution/internal/mutate"
-	"github.com/docker/model-distribution/internal/partial"
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/internal/gguf"
+	"github.com/docker/model-runner/pkg/distribution/internal/mutate"
+	"github.com/docker/model-runner/pkg/distribution/internal/partial"
+	"github.com/docker/model-runner/pkg/distribution/types"
 )
 
 // Builder builds a model artifact

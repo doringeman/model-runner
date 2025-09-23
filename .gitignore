@@ -6,3 +6,7 @@ models-store/
 # Directory where we store the updated llama.cpp
 updated-inference/
 vendor/
+
+# monorepo migration
+# model-distribution
+pkg/distribution/bin/

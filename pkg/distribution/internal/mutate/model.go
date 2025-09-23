@@ -8,8 +8,8 @@ import (
 	ggcrpartial "github.com/google/go-containerregistry/pkg/v1/partial"
 	ggcr "github.com/google/go-containerregistry/pkg/v1/types"
 
-	"github.com/docker/model-distribution/internal/partial"
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/internal/partial"
+	"github.com/docker/model-runner/pkg/distribution/types"
 )
 
 type model struct {

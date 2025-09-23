@@ -8,7 +8,7 @@ import (
 
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 
-	"github.com/docker/model-distribution/internal/progress"
+	"github.com/docker/model-runner/pkg/distribution/internal/progress"
 )
 
 const (

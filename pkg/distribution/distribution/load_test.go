@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/docker/model-distribution/builder"
-	"github.com/docker/model-distribution/tarball"
+	"github.com/docker/model-runner/pkg/distribution/builder"
+	"github.com/docker/model-runner/pkg/distribution/tarball"
 )
 
 func TestLoadModel(t *testing.T) {

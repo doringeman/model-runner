@@ -8,7 +8,7 @@ import (
 
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 
-	"github.com/docker/model-distribution/tarball"
+	"github.com/docker/model-runner/pkg/distribution/tarball"
 )
 
 func TestStream(t *testing.T) {

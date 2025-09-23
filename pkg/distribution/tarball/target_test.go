@@ -10,8 +10,8 @@ import (
 
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 
-	"github.com/docker/model-distribution/internal/gguf"
-	"github.com/docker/model-distribution/tarball"
+	"github.com/docker/model-runner/pkg/distribution/internal/gguf"
+	"github.com/docker/model-runner/pkg/distribution/tarball"
 )
 
 func TestTarget(t *testing.T) {

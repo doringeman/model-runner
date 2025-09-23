@@ -10,7 +10,7 @@ import (
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	v1types "github.com/google/go-containerregistry/pkg/v1/types"
 
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/types"
 )
 
 // mockLayer implements v1.Layer for testing

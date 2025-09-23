@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	testutil "github.com/docker/model-distribution/transport/internal/testing"
+	testutil "github.com/docker/model-runner/pkg/distribution/transport/internal/testing"
 )
 
 // TestParallelDownload_Success verifies parallel downloads using

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/types"
 )
 
 var (

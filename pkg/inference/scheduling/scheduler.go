@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/model-distribution/distribution"
+	"github.com/docker/model-runner/pkg/distribution/distribution"
 	"github.com/docker/model-runner/pkg/inference"
 	"github.com/docker/model-runner/pkg/inference/memory"
 	"github.com/docker/model-runner/pkg/inference/models"

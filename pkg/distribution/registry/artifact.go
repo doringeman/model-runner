@@ -1,8 +1,8 @@
 package registry
 
 import (
-	"github.com/docker/model-distribution/internal/partial"
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/internal/partial"
+	"github.com/docker/model-runner/pkg/distribution/types"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 )
 

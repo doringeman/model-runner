@@ -8,8 +8,8 @@ import (
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	parser "github.com/gpustack/gguf-parser-go"
 
-	"github.com/docker/model-distribution/internal/partial"
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/internal/partial"
+	"github.com/docker/model-runner/pkg/distribution/types"
 )
 
 func NewModel(path string) (*Model, error) {

@@ -13,7 +13,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/docker/model-distribution/transport/parallel"
+	"github.com/docker/model-runner/pkg/distribution/transport/parallel"
 )
 
 var (

@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/model-distribution/builder"
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/builder"
+	"github.com/docker/model-runner/pkg/distribution/types"
 )
 
 func TestBuilder(t *testing.T) {

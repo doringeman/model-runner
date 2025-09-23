@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/model-distribution/distribution"
+	"github.com/docker/model-runner/pkg/distribution/distribution"
 )
 
 // TestMainHelp tests the help command

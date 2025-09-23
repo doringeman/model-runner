@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/types"
 	"github.com/docker/model-runner/pkg/logging"
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"

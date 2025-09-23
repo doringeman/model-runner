@@ -36,7 +36,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/model-distribution/transport/internal/common"
+	"github.com/docker/model-runner/pkg/distribution/transport/internal/common"
 )
 
 // Option configures a ResumableTransport.

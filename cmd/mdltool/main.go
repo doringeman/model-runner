@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/docker/model-distribution/builder"
-	"github.com/docker/model-distribution/distribution"
-	"github.com/docker/model-distribution/registry"
-	"github.com/docker/model-distribution/tarball"
+	"github.com/docker/model-runner/pkg/distribution/builder"
+	"github.com/docker/model-runner/pkg/distribution/distribution"
+	"github.com/docker/model-runner/pkg/distribution/registry"
+	"github.com/docker/model-runner/pkg/distribution/tarball"
 )
 
 // stringSliceFlag is a flag that can be specified multiple times to collect multiple string values

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/types"
 
 	"github.com/docker/model-runner/pkg/inference"
 )

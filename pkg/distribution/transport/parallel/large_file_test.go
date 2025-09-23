@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"testing"
 
-	testutil "github.com/docker/model-distribution/transport/internal/testing"
+	testutil "github.com/docker/model-runner/pkg/distribution/transport/internal/testing"
 )
 
 // deterministicDataGenerator generates deterministic data based on position.

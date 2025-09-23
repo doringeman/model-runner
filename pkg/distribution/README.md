@@ -87,7 +87,7 @@ For more information about the CLI tool, run:
 ```go
 import (
     "context"
-    "github.com/docker/model-distribution/pkg/distribution"
+    "github.com/docker/model-runner/pkg/distribution/pkg/distribution"
 )
 
 // Create a new client

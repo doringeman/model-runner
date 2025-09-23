@@ -10,8 +10,8 @@ import (
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 
-	"github.com/docker/model-distribution/internal/progress"
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/internal/progress"
+	"github.com/docker/model-runner/pkg/distribution/types"
 )
 
 // Target stores an artifact as a TAR archive

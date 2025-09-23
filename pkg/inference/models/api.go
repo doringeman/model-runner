@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/types"
 )
 
 // ModelCreateRequest represents a model create request. It is designed to

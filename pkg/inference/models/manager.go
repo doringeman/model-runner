@@ -12,9 +12,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/docker/model-distribution/distribution"
-	"github.com/docker/model-distribution/registry"
-	"github.com/docker/model-distribution/types"
+	"github.com/docker/model-runner/pkg/distribution/distribution"
+	"github.com/docker/model-runner/pkg/distribution/registry"
+	"github.com/docker/model-runner/pkg/distribution/types"
 	"github.com/docker/model-runner/pkg/diskusage"
 	"github.com/docker/model-runner/pkg/inference"
 	"github.com/docker/model-runner/pkg/inference/memory"
