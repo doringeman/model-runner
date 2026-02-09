@@ -42,7 +42,7 @@ type vllmMetal struct {
 	modelManager *models.Manager
 	// serverLog is the logger to use for the vllm-metal server process.
 	serverLog logging.Logger
-	// pythonPath is the path to the python3 binary in the venv.
+	// pythonPath is the path to the bundled python3 binary.
 	pythonPath string
 	// customPythonPath is an optional custom path to a python3 binary.
 	customPythonPath string
@@ -127,54 +127,9 @@ func (v *vllmMetal) Install(ctx context.Context, httpClient *http.Client) error 
 	return v.verifyInstallation(ctx)
 }
 
-// findSystemPython finds Python 3.12 interpreter on the system.
-// Python 3.12 is required because the vllm-metal wheel is built for cp312.
-func (v *vllmMetal) findSystemPython(ctx context.Context) (string, string, error) {
-	// Try python3.12 first
-	for _, pyCmd := range []string{"python3.12", "python3"} {
-		pythonPath, err := exec.LookPath(pyCmd)
-		if err != nil {
-			continue
-		}
-
-		// Verify version is exactly 3.12
-		out, err := exec.CommandContext(ctx, pythonPath, "--version").Output()
-		if err != nil {
-			continue
-		}
-
-		versionStr := strings.TrimPrefix(strings.TrimSpace(string(out)), "Python ")
-		parts := strings.Split(versionStr, ".")
-		if len(parts) < 2 {
-			continue
-		}
-
-		major, err := strconv.Atoi(parts[0])
-		if err != nil {
-			continue
-		}
-		minor, err := strconv.Atoi(parts[1])
-		if err != nil {
-			continue
-		}
-
-		// Must be exactly Python 3.12 for wheel compatibility
-		if major == 3 && minor == 12 {
-			return pythonPath, "3.12", nil
-		}
-	}
-
-	return "", "", fmt.Errorf("python 3.12 required (vllm-metal wheel is built for cp312); install with: brew install python@3.12")
-}
-
 // downloadAndExtract downloads the vllm-metal image from Docker Hub and extracts it.
+// The image contains a self-contained Python installation with all packages pre-installed.
 func (v *vllmMetal) downloadAndExtract(ctx context.Context, _ *http.Client) error {
-	pythonPath, pyVersion, err := v.findSystemPython(ctx)
-	if err != nil {
-		return err
-	}
-
-	v.log.Infof("Using system Python %s from %s", pyVersion, pythonPath)
 	v.log.Infof("Downloading vllm-metal %s from Docker Hub...", vllmMetalVersion)
 
 	// Create temp directory for download
@@ -196,7 +151,6 @@ func (v *vllmMetal) downloadAndExtract(ctx context.Context, _ *http.Client) erro
 		return fmt.Errorf("failed to extract image: %w", err)
 	}
 
-	v.log.Infof("Creating Python venv at %s...", v.installDir)
 	if err := os.MkdirAll(filepath.Dir(v.installDir), 0755); err != nil {
 		return fmt.Errorf("failed to create parent dir: %w", err)
 	}
@@ -206,18 +160,13 @@ func (v *vllmMetal) downloadAndExtract(ctx context.Context, _ *http.Client) erro
 		return fmt.Errorf("failed to remove existing install dir: %w", err)
 	}
 
-	venvCmd := exec.CommandContext(ctx, pythonPath, "-m", "venv", v.installDir)
-	if out, err := venvCmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to create venv: %w\nOutput: %s", err, string(out))
-	}
+	v.log.Infof("Extracting self-contained Python environment...")
 
-	v.log.Infof("Extracting packages...")
-	sitePackagesDir := filepath.Join(v.installDir, "lib", fmt.Sprintf("python%s", pyVersion), "site-packages")
-
-	// Copy extracted files to site-packages (the image contains /vllm-metal/*)
+	// Copy the extracted self-contained Python installation directly to install dir
+	// (the image contains /vllm-metal/ with bin/, lib/, etc.)
 	vllmMetalDir := filepath.Join(extractDir, "vllm-metal")
-	if err := copyDir(vllmMetalDir, sitePackagesDir); err != nil {
-		return fmt.Errorf("failed to copy to site-packages: %w", err)
+	if err := copyDir(vllmMetalDir, v.installDir); err != nil {
+		return fmt.Errorf("failed to copy to install dir: %w", err)
 	}
 
 	v.log.Infof("vllm-metal %s installed successfully", vllmMetalVersion)

@@ -144,7 +144,8 @@ docker-run-impl:
 	DEBUG="${DEBUG}" \
 	scripts/docker-run.sh
 
-# vllm-metal (macOS ARM64 only, requires Python 3.12 for wheel compatibility)
+# vllm-metal (macOS ARM64 only)
+# The tarball is self-contained: includes a standalone Python 3.12 + all packages.
 VLLM_METAL_RELEASE ?= v0.1.0-20260126-121650
 VLLM_METAL_INSTALL_DIR := $(HOME)/.docker/model-runner/vllm-metal
 VLLM_METAL_TARBALL := vllm-metal-macos-arm64-$(VLLM_METAL_RELEASE).tar.gz
@@ -169,26 +170,9 @@ vllm-metal-install:
 		exit 1; \
 	fi; \
 	echo "Installing vllm-metal to $(VLLM_METAL_INSTALL_DIR)..."; \
-	PYTHON_BIN=""; \
-	if command -v python3.12 >/dev/null 2>&1; then \
-		PYTHON_BIN="python3.12"; \
-	elif command -v python3 >/dev/null 2>&1; then \
-		version=$$(python3 --version 2>&1 | grep -oE '[0-9]+\.[0-9]+'); \
-		if [ "$$version" = "3.12" ]; then \
-			PYTHON_BIN="python3"; \
-		fi; \
-	fi; \
-	if [ -z "$$PYTHON_BIN" ]; then \
-		echo "Error: Python 3.12 required (vllm-metal wheel is built for cp312)"; \
-		echo "Install with: brew install python@3.12"; \
-		exit 1; \
-	fi; \
-	echo "Using Python 3.12 from $$(which $$PYTHON_BIN)"; \
 	rm -rf "$(VLLM_METAL_INSTALL_DIR)"; \
-	$$PYTHON_BIN -m venv "$(VLLM_METAL_INSTALL_DIR)"; \
-	SITE_PACKAGES="$(VLLM_METAL_INSTALL_DIR)/lib/python3.12/site-packages"; \
-	mkdir -p "$$SITE_PACKAGES"; \
-	tar -xzf "$(VLLM_METAL_TARBALL)" -C "$$SITE_PACKAGES"; \
+	mkdir -p "$(VLLM_METAL_INSTALL_DIR)"; \
+	tar -xzf "$(VLLM_METAL_TARBALL)" -C "$(VLLM_METAL_INSTALL_DIR)"; \
 	echo "$(VLLM_METAL_RELEASE)" > "$$VERSION_FILE"; \
 	echo "vllm-metal $(VLLM_METAL_RELEASE) installed successfully!"
 
@@ -266,10 +250,10 @@ help:
 	@echo "  make run LOCAL_LLAMA=1"
 	@echo "  make docker-run LLAMA_ARGS=\"--verbose --jinja -ngl 999 --threads 4 --ctx-size 2048\""
 	@echo ""
-	@echo "vllm-metal (macOS ARM64 only, requires Python 3.12):"
+	@echo "vllm-metal (macOS ARM64 only):"
 	@echo "  1. Auto-pull from Docker Hub (clean dev installs first: make vllm-metal-clean):"
 	@echo "     make run"
 	@echo "  2. Build and install from tarball:"
 	@echo "     make vllm-metal-build && make vllm-metal-install && make run"
-	@echo "  3. Install from local source (for development):"
+	@echo "  3. Install from local source (for development, requires Python 3.12):"
 	@echo "     make vllm-metal-dev VLLM_METAL_PATH=../vllm-metal && make run"
