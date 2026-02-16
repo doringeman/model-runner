@@ -148,7 +148,8 @@ func ensureStandaloneRunnerAvailable(ctx context.Context, printer standalone.Sta
 	}
 	// TLS is disabled by default for auto-installation
 	tlsOpts := standalone.TLSOptions{Enabled: false}
-	if err := standalone.CreateControllerContainer(ctx, dockerClient, port, host, environment, false, gpu, "", modelStorageVolume, printer, engineKind, debug, false, "", tlsOpts); err != nil {
+	isRemote := desktop.IsRemoteContext(dockerCLI, dockerCLI.CurrentContext())
+	if err := standalone.CreateControllerContainer(ctx, dockerClient, port, host, environment, false, gpu, "", modelStorageVolume, printer, engineKind, debug, false, "", tlsOpts, isRemote); err != nil {
 		return nil, fmt.Errorf("unable to initialize standalone model runner container: %w", err)
 	}
 
@@ -377,7 +378,8 @@ func runInstallOrStart(cmd *cobra.Command, opts runnerOptions, debug bool) error
 	}
 
 	// Create the model runner container.
-	if err := standalone.CreateControllerContainer(cmd.Context(), dockerClient, port, opts.host, environment, opts.doNotTrack, gpu, opts.backend, modelStorageVolume, asPrinter(cmd), engineKind, debug, vllmOnWSL, opts.proxyCert, tlsOpts); err != nil {
+	isRemote := desktop.IsRemoteContext(dockerCLI, dockerCLI.CurrentContext())
+	if err := standalone.CreateControllerContainer(cmd.Context(), dockerClient, port, opts.host, environment, opts.doNotTrack, gpu, opts.backend, modelStorageVolume, asPrinter(cmd), engineKind, debug, vllmOnWSL, opts.proxyCert, tlsOpts, isRemote); err != nil {
 		return fmt.Errorf("unable to initialize standalone model runner container: %w", err)
 	}
 

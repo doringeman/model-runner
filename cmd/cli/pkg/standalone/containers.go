@@ -301,7 +301,7 @@ func isPortBindingError(err error) bool {
 }
 
 // CreateControllerContainer creates and starts a controller container.
-func CreateControllerContainer(ctx context.Context, dockerClient *client.Client, port uint16, host string, environment string, doNotTrack bool, gpu gpupkg.GPUSupport, backend string, modelStorageVolume string, printer StatusPrinter, engineKind types.ModelRunnerEngineKind, debug bool, vllmOnWSL bool, proxyCert string, tlsOpts TLSOptions) error {
+func CreateControllerContainer(ctx context.Context, dockerClient *client.Client, port uint16, host string, environment string, doNotTrack bool, gpu gpupkg.GPUSupport, backend string, modelStorageVolume string, printer StatusPrinter, engineKind types.ModelRunnerEngineKind, debug bool, vllmOnWSL bool, proxyCert string, tlsOpts TLSOptions, isRemote bool) error {
 	imageName := controllerImageName(gpu, backend)
 
 	// Set up the container configuration.
@@ -448,7 +448,7 @@ func CreateControllerContainer(ctx context.Context, dockerClient *client.Client,
 		if os.Getenv("_MODEL_RUNNER_TREAT_DESKTOP_AS_MOBY") != "1" {
 			// Don't bind the bridge gateway IP if we're treating Docker Desktop as Moby.
 			// Only add bridge gateway IP binding if host is 127.0.0.1 and not in rootless mode
-			if host == "127.0.0.1" && !isRootless(ctx, dockerClient) && !vllmOnWSL {
+			if host == "127.0.0.1" && !isRootless(ctx, dockerClient) && !vllmOnWSL && !isRemote {
 				if bridgeGatewayIP, err := determineBridgeGatewayIP(ctx, dockerClient); err == nil && bridgeGatewayIP != "" {
 					portBindings = append(portBindings, nat.PortBinding{HostIP: bridgeGatewayIP, HostPort: port})
 				}

@@ -59,6 +59,24 @@ func IsDesktopWSLContext(ctx context.Context, cli *command.DockerCli) bool {
 		serverInfo.Info.OperatingSystem == "Docker Desktop"
 }
 
+// IsRemoteContext returns true if the specified Docker context uses an SSH
+// endpoint (i.e. connects to a remote Docker host).
+func IsRemoteContext(cli *command.DockerCli, name string) bool {
+	c, err := cli.ContextStore().GetMetadata(name)
+	if err != nil {
+		return false
+	}
+	endpoint, err := docker.EndpointFromContext(c)
+	if err != nil {
+		return false
+	}
+	helper, err := connhelper.GetConnectionHelper(endpoint.Host)
+	if err != nil {
+		return false
+	}
+	return helper != nil
+}
+
 // isCloudContext returns true if the CLI instance points to a Docker Cloud
 // context and false otherwise.
 func isCloudContext(cli *command.DockerCli) bool {
@@ -252,7 +270,25 @@ func DetectContext(ctx context.Context, cli *command.DockerCli, printer standalo
 		if treatDesktopAsMoby {
 			kind = types.ModelRunnerEngineKindMoby
 		}
-	} else if isCloudContext(cli) {
+	} else if IsRemoteContext(cli, cli.CurrentContext()) {
+		// When connecting via SSH, cli.Client().Info() (used by
+		// isDesktopContext) may not have the SSH transport set up, so
+		// Desktop detection can fail. Re-check with a properly
+		// constructed SSH-aware client.
+		if remoteClient, err := DockerClientForContext(cli, cli.CurrentContext()); err == nil {
+			remoteCtx, remoteCancel := context.WithTimeout(ctx, 5*time.Second)
+			defer remoteCancel()
+			remoteInfo, err := remoteClient.Info(remoteCtx)
+			if err == nil && remoteInfo.OperatingSystem == "Docker Desktop" {
+				kind = types.ModelRunnerEngineKindDesktop
+				if treatDesktopAsMoby {
+					kind = types.ModelRunnerEngineKindMoby
+				}
+			}
+		}
+	}
+
+	if kind == types.ModelRunnerEngineKindMoby && isCloudContext(cli) {
 		kind = types.ModelRunnerEngineKindCloud
 		// Wake up Docker Cloud if it's idle.
 		if err := wakeUpCloudIfIdle(ctx, cli); err != nil {
