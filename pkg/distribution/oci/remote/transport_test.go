@@ -106,3 +106,19 @@ func TestExchangeSSRF_SensitiveBodyNotReflectedInError(t *testing.T) {
 		}
 	}
 }
+
+func TestExchangeSSRF_DisallowedSchemes(t *testing.T) {
+	schemes := []string{"gopher://internal:6379/_SET%20key%20pwned", "ftp://internal/secret", "dict://internal:11211/stat"}
+	for _, realm := range schemes {
+		t.Run(realm, func(t *testing.T) {
+			pr := pingResponseForRealm(realm)
+			_, err := remote.Exchange(t.Context(), emptyRegistry, nil, nil, []string{"repository:x:pull"}, pr)
+			if err == nil {
+				t.Fatalf("Exchange() should reject scheme in %q", realm)
+			}
+			if !strings.Contains(err.Error(), "is not allowed") {
+				t.Errorf("expected error about disallowed scheme, got: %q", err.Error())
+			}
+		})
+	}
+}

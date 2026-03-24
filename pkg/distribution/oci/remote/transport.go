@@ -106,6 +106,10 @@ func resolveAndValidateRealm(rawURL string) (dialAddr, hostname string, err erro
 		return "", "", fmt.Errorf("invalid realm URL: %w", err)
 	}
 
+	if u.Scheme != "https" && u.Scheme != "http" {
+		return "", "", fmt.Errorf("realm URL scheme %q is not allowed", u.Scheme)
+	}
+
 	hostname = u.Hostname()
 	port := u.Port()
 	if port == "" {
